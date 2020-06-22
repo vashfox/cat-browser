@@ -8,6 +8,7 @@ import { Dispatch } from "redux";
 import { connect } from "react-redux";
 import { useHistory, useLocation } from "react-router-dom";
 import { getBreedDetails } from "../../services/base";
+import { initial } from "lodash";
 
 interface BreedWeight {
   imperial: string;
@@ -97,7 +98,7 @@ const ViewBreed: React.FC<Props> = (props) => {
     history.goBack();
   };
 
-  useEffect(() => {
+  const init = () => {
     if (location.pathname) {
       dispatch({
         type: "SET_LOADING_INFO",
@@ -116,6 +117,10 @@ const ViewBreed: React.FC<Props> = (props) => {
         }, 1000);
       });
     }
+  };
+
+  useEffect(() => {
+    init();
   }, []);
 
   useEffect(() => {

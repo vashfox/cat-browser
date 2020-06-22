@@ -120,7 +120,7 @@ const App: React.FC<Props> = (props) => {
     return lstItems;
   };
 
-  useEffect(() => {
+  const init = () => {
     if (location.search) {
       let breedSel: any = location.search.replace("?breed=", "");
       setSelectedBreed(breedSel);
@@ -145,6 +145,10 @@ const App: React.FC<Props> = (props) => {
         payload: false,
       });
     });
+  };
+
+  useEffect(() => {
+    init();
   }, []);
 
   useEffect(() => {
