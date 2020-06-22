@@ -120,34 +120,34 @@ const App: React.FC<Props> = (props) => {
     return lstItems;
   };
 
-  useEffect(() => {
-    function init() {
-      if (location.search) {
-        let breedSel: any = location.search.replace("?breed=", "");
-        setSelectedBreed(breedSel);
-        dispatch({
-          type: "SET_SELECTED_BREED",
-          payload: breedSel,
-        });
-        getBreedSelected(breedSel);
-      }
-
+  const init = () => {
+    if (location.search) {
+      let breedSel: any = location.search.replace("?breed=", "");
+      setSelectedBreed(breedSel);
       dispatch({
-        type: "SET_LOADING_BREEDS",
-        payload: true,
+        type: "SET_SELECTED_BREED",
+        payload: breedSel,
       });
-      getBreeds().then((res: any) => {
-        dispatch({
-          type: "GET_BREEDS",
-          payload: res.data,
-        });
-        dispatch({
-          type: "SET_LOADING_BREEDS",
-          payload: false,
-        });
-      });
+      getBreedSelected(breedSel);
     }
 
+    dispatch({
+      type: "SET_LOADING_BREEDS",
+      payload: true,
+    });
+    getBreeds().then((res: any) => {
+      dispatch({
+        type: "GET_BREEDS",
+        payload: res.data,
+      });
+      dispatch({
+        type: "SET_LOADING_BREEDS",
+        payload: false,
+      });
+    });
+  };
+
+  useEffect(() => {
     init();
   }, []);
 

@@ -97,28 +97,28 @@ const ViewBreed: React.FC<Props> = (props) => {
     history.goBack();
   };
 
-  useEffect(() => {
-    function init() {
-      if (location.pathname) {
+  const init = () => {
+    if (location.pathname) {
+      dispatch({
+        type: "SET_LOADING_INFO",
+        payload: true,
+      });
+      getBreedDetails(location.pathname.replace("/", "")).then((res: any) => {
         dispatch({
-          type: "SET_LOADING_INFO",
-          payload: true,
+          type: "GET_DETAIL",
+          payload: res.data,
         });
-        getBreedDetails(location.pathname.replace("/", "")).then((res: any) => {
+        setTimeout(() => {
           dispatch({
-            type: "GET_DETAIL",
-            payload: res.data,
+            type: "SET_LOADING_INFO",
+            payload: false,
           });
-          setTimeout(() => {
-            dispatch({
-              type: "SET_LOADING_INFO",
-              payload: false,
-            });
-          }, 1000);
-        });
-      }
+        }, 1000);
+      });
     }
+  };
 
+  useEffect(() => {
     init();
   }, []);
 
