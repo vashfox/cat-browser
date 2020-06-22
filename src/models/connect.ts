@@ -1,5 +1,4 @@
 import { createStore, combineReducers, applyMiddleware } from "redux";
-import { getBreedDetails, getBreeds, searchBreedImage } from "../services/base";
 import thunk from "redux-thunk";
 import { unionBy } from "lodash";
 

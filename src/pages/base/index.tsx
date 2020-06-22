@@ -44,7 +44,7 @@ export interface Props {
 const App: React.FC<Props> = (props) => {
   let history = useHistory();
   let location = useLocation();
-  const { dispatch, mState } = props;
+  let { dispatch, mState } = props;
   const classes = useStyles();
   const [dData, setDData] = useState(mState);
   const [isLoading, setLoader] = useState(false);
