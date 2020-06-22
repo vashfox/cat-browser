@@ -98,7 +98,7 @@ const ViewBreed: React.FC<Props> = (props) => {
   };
 
   useEffect(() => {
-    const init = () => {
+    function init() {
       if (location.pathname) {
         dispatch({
           type: "SET_LOADING_INFO",
@@ -117,7 +117,7 @@ const ViewBreed: React.FC<Props> = (props) => {
           }, 1000);
         });
       }
-    };
+    }
 
     init();
   }, []);
