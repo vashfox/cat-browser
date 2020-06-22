@@ -5,13 +5,15 @@ import NotesIcon from "@material-ui/icons/Notes";
 import { Avatar, Grid, Paper, Button, Box } from "@material-ui/core";
 import Skeleton from "@material-ui/lab/Skeleton";
 import { Link } from "react-router-dom";
+import { connect } from "react-redux";
+import { orderBy } from "lodash";
 
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
   },
   paper: {
-    width: "auto",
+    width: "100%",
   },
   large: {
     width: "auto",
@@ -22,33 +24,45 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CatList: React.FC = () => {
+export interface Props {
+  mState: any;
+}
+
+const CatList: React.FC<Props> = (props) => {
+  const { mState } = props;
   const classes = useStyles();
   const [isLoading, setLoader] = useState(false);
 
   const loadListUI = () => {
     const lstItems: any[] = [];
-    [0, 1, 2, 3, 4, 5, 6, 7].map((value: any) => {
-      lstItems.push(
-        <Grid key={value} item xs={3}>
-          <Paper className={classes.paper}>
-            <Avatar variant="square" className={classes.large} />
-            <div className={classes.iPad}>
-              <Link to="/123">
-                <Button
-                  fullWidth
-                  size="small"
-                  variant="contained"
-                  startIcon={<NotesIcon />}
-                >
-                  View Details
-                </Button>
-              </Link>
-            </div>
-          </Paper>
-        </Grid>
-      );
-    });
+    if (mState.browser.cats) {
+      let dd: any = orderBy(mState.browser.cats, ["breeds.name"], ["asc"]);
+      dd.map((value: any) => {
+        lstItems.push(
+          <Grid key={value.id} item xs={3}>
+            <Paper className={classes.paper}>
+              <Avatar
+                variant="square"
+                src={value.url}
+                className={classes.large}
+              />
+              <div className={classes.iPad}>
+                <Link to={`/${value.id}`}>
+                  <Button
+                    fullWidth
+                    size="small"
+                    variant="contained"
+                    startIcon={<NotesIcon />}
+                  >
+                    View Details
+                  </Button>
+                </Link>
+              </div>
+            </Paper>
+          </Grid>
+        );
+      });
+    }
     return lstItems;
   };
 
@@ -73,10 +87,14 @@ const CatList: React.FC = () => {
     setLoader(false);
   }, []);
 
+  useEffect(() => {
+    setLoader(mState.browser.loadingCats);
+  }, [mState]);
+
   return (
     <Grid container className={classes.root}>
       <Grid item xs={12}>
-        <Grid container justify="center" spacing={5}>
+        <Grid container spacing={5}>
           {isLoading ? skeletonLoader() : loadListUI()}
         </Grid>
       </Grid>
@@ -84,4 +102,6 @@ const CatList: React.FC = () => {
   );
 };
 
-export default CatList;
+export default connect((state) => ({
+  mState: state,
+}))(CatList);

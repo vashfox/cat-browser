@@ -1,72 +1,34 @@
-import { createStore, combineReducers } from "redux";
+import { createStore, combineReducers, applyMiddleware } from "redux";
 import { getBreedDetails, getBreeds, searchBreedImage } from "../services/base";
+import thunk from "redux-thunk";
 
-export interface BreedWeight {
-  imperial: string;
-  metric: string;
-}
-
-export interface Breeds {
-  weight: BreedWeight;
-  id: string;
-  name: string;
-  cfa_url: string;
-  vetstreet_url: string;
-  vcahospitals_url: string;
-  temperament: string;
-  origin: string;
-  country_codes: string;
-  country_code: string;
-  description: string;
-  life_span: string;
-  indoor: number;
-  lap: number;
-  alt_names: string;
-  adaptability: number;
-  affection_level: number;
-  child_friendly: number;
-  dog_friendly: number;
-  energy_level: number;
-  grooming: number;
-  health_issues: number;
-  intelligence: number;
-  shedding_level: number;
-  social_needs: number;
-  stranger_friendly: number;
-  vocalisation: number;
-  experimental: number;
-  hairless: number;
-  natural: number;
-  rare: number;
-  rex: number;
-  suppressed_tail: number;
-  short_legs: number;
-  wikipedia_url: string;
-  hypoallergenic: number;
-}
-
-const mathReducer = async (
+const mathReducer = (
   state = {
     list: [],
+    loadingList: false,
+    loadingCats: false,
+    loadingInfo: false,
+    selectedBreed: null,
     info: null,
     cats: [],
   },
   action: any
 ) => {
-  console.log(action);
   switch (action.type) {
     case "GET_BREEDS":
-      let resBreeds: any = await getBreeds();
-      if (resBreeds) return { ...state, list: [] };
-      else return { ...state, list: resBreeds };
+      return { ...state, list: action.payload };
     case "GET_DETAIL":
-      let resDetails: any = await getBreedDetails(action.id);
-      if (resDetails) return { ...state, info: null };
-      else return { ...state, info: resDetails };
+      return { ...state, info: action.payload };
     case "GET_SELECTED_BREED":
-      let resSearchData: any = await searchBreedImage(action.payload);
-      if (resSearchData) return { ...state, cats: null };
-      else return { ...state, cats: resSearchData };
+      return { ...state, cats: action.payload };
+    case "SET_LOADING_BREEDS":
+      return { ...state, loadingList: action.payload };
+    case "SET_LOADING_CATS":
+      return { ...state, loadingCats: action.payload };
+    case "SET_LOADING_INFO":
+      return { ...state, loadingInfo: action.payload };
+    case "SET_SELECTED_BREED":
+      return { ...state, selectedBreed: action.payload };
   }
   return state;
 };
@@ -75,6 +37,6 @@ const rootReducer = combineReducers({
   browser: mathReducer,
 });
 
-const store = createStore(rootReducer);
+const store = createStore(rootReducer, applyMiddleware(thunk));
 
 export default store;

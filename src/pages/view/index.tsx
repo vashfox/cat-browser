@@ -3,10 +3,63 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { Avatar, Grid, Paper, Button, Box } from "@material-ui/core";
 import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
-import { useHistory } from "react-router-dom";
 import Skeleton from "@material-ui/lab/Skeleton";
 import { Dispatch } from "redux";
 import { connect } from "react-redux";
+import { useHistory, useLocation } from "react-router-dom";
+import { getBreedDetails } from "../../services/base";
+
+interface BreedWeight {
+  imperial: string;
+  metric: string;
+}
+
+interface Breeds {
+  weight: BreedWeight;
+  id: string;
+  name: string;
+  cfa_url: string;
+  vetstreet_url: string;
+  vcahospitals_url: string;
+  temperament: string;
+  origin: string;
+  country_codes: string;
+  country_code: string;
+  description: string;
+  life_span: string;
+  indoor: number;
+  lap: number;
+  alt_names: string;
+  adaptability: number;
+  affection_level: number;
+  child_friendly: number;
+  dog_friendly: number;
+  energy_level: number;
+  grooming: number;
+  health_issues: number;
+  intelligence: number;
+  shedding_level: number;
+  social_needs: number;
+  stranger_friendly: number;
+  vocalisation: number;
+  experimental: number;
+  hairless: number;
+  natural: number;
+  rare: number;
+  rex: number;
+  suppressed_tail: number;
+  short_legs: number;
+  wikipedia_url: string;
+  hypoallergenic: number;
+}
+
+interface Info {
+  breeds: Breeds[];
+  height: number;
+  id: string;
+  url: string;
+  width: number;
+}
 
 const useStyles = makeStyles((theme) => ({
   large: {
@@ -28,26 +81,50 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export interface Props {
+  mState: any;
   dispatch: Dispatch;
 }
 
 const ViewBreed: React.FC<Props> = (props) => {
-  let { dispatch } = props;
+  let { dispatch, mState } = props;
   let history = useHistory();
+  let location = useLocation();
   const classes = useStyles();
   const [isLoading, setLoader] = useState(false);
+  const [info, setInfo] = useState<Info>();
 
   const onGoBack = () => {
     history.goBack();
   };
 
   useEffect(() => {
-    dispatch({
-      type: "GET_DETAIL",
-      id: "SAaCmtjAn",
-    });
-    setLoader(false);
+    if (location.pathname) {
+      dispatch({
+        type: "SET_LOADING_INFO",
+        payload: true,
+      });
+      getBreedDetails(location.pathname.replace("/", "")).then((res: any) => {
+        dispatch({
+          type: "GET_DETAIL",
+          payload: res.data,
+        });
+        setTimeout(() => {
+          dispatch({
+            type: "SET_LOADING_INFO",
+            payload: false,
+          });
+        }, 1000);
+      });
+    }
   }, []);
+
+  useEffect(() => {
+    console.log(mState.browser);
+    setLoader(mState.browser.loadingInfo);
+    if (mState.browser.info) {
+      setInfo(mState.browser.info);
+    }
+  }, [mState]);
 
   const skeletonLoader = () => {
     return (
@@ -74,37 +151,34 @@ const ViewBreed: React.FC<Props> = (props) => {
   };
 
   const detailsUI = () => {
-    return (
-      <Paper variant="outlined" square>
-        <div className={classes.viewInterfaceHeaderCLS}>
-          <Button
-            size="small"
-            variant="contained"
-            color="primary"
-            onClick={() => onGoBack()}
-            startIcon={<ArrowBackIosIcon />}
-          >
-            Back
-          </Button>
-        </div>
-        <div>
-          <Avatar variant="square" className={classes.large} />
-          <div className={classes.detailsUI}>
-            <h3 className={classes.headerStl}>Aegean</h3>
-            <h4 className={classes.headerStl}>Origin: Greece</h4>
-            <p>Affectionate, Social, Intelligent, Playful, Active</p>
-            <p>
-              Native to the Greek islands known as the Cyclades in the Aegean
-              Sea, these are natural cats, meaning they developed without humans
-              getting involved in their breeding. As a breed, Aegean Cats are
-              rare, although they are numerous on their home islands. They are
-              generally friendly toward people and can be excellent cats for
-              families with children.
-            </p>
+    if (info) {
+      return (
+        <Paper variant="outlined" square>
+          <div className={classes.viewInterfaceHeaderCLS}>
+            <Button
+              size="small"
+              variant="contained"
+              color="primary"
+              onClick={() => onGoBack()}
+              startIcon={<ArrowBackIosIcon />}
+            >
+              Back
+            </Button>
           </div>
-        </div>
-      </Paper>
-    );
+          <div>
+            <Avatar variant="square" src={info.url} className={classes.large} />
+            <div className={classes.detailsUI}>
+              <h3 className={classes.headerStl}>{info.breeds[0].name}</h3>
+              <h4 className={classes.headerStl}>
+                Origin: {info.breeds[0].origin}
+              </h4>
+              <p>{info.breeds[0].temperament}</p>
+              <p>{info.breeds[0].description}</p>
+            </div>
+          </div>
+        </Paper>
+      );
+    }
   };
 
   return (
@@ -114,8 +188,6 @@ const ViewBreed: React.FC<Props> = (props) => {
   );
 };
 
-const mapStateToProps = (state: any) => ({
-  browse: state,
-});
-
-export default connect(mapStateToProps)(ViewBreed);
+export default connect((state) => ({
+  mState: state,
+}))(ViewBreed);

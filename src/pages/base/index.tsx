@@ -13,6 +13,8 @@ import {
   CircularProgress,
 } from "@material-ui/core";
 import { connect } from "react-redux";
+import { getBreeds, searchBreedImage } from "../../services/base";
+import { useHistory, useLocation } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -29,51 +31,106 @@ const useStyles = makeStyles((theme) => ({
   },
   spacingStl: {
     padding: 20,
+    display: "block",
+    width: "100vw",
   },
 }));
 
 export interface Props {
-  mapStateToProps: any;
+  mState: any;
   dispatch: Dispatch;
 }
 
 const App: React.FC<Props> = (props) => {
-  const { dispatch } = props;
+  let history = useHistory();
+  let location = useLocation();
+  const { dispatch, mState } = props;
   const classes = useStyles();
-  const [breeds, setBreedList] = useState();
+  const [dData, setDData] = useState(mState);
   const [isLoading, setLoader] = useState(false);
-  const [selectedBreed, setSelectedBreed] = useState();
+  const [selectedBreed, setSelectedBreed] = useState("");
+
+  const getBreedSelected = (id: any) => {
+    dispatch({
+      type: "SET_LOADING_CATS",
+      payload: true,
+    });
+    searchBreedImage({
+      page: 1,
+      id,
+    }).then((res: any) => {
+      dispatch({
+        type: "GET_SELECTED_BREED",
+        payload: res.data,
+      });
+      dispatch({
+        type: "SET_LOADING_CATS",
+        payload: false,
+      });
+    });
+  };
 
   const handleChange = (e: any) => {
     setSelectedBreed(e.target.value);
+    dispatch({
+      type: "SET_SELECTED_BREED",
+      payload: e.target.value,
+    });
+    getBreedSelected(e.target.value);
+    history.push({
+      search: `?breed=${e.target.value}`,
+    });
   };
 
   const onLoadMore = () => {
     setLoader(true);
   };
 
-  const getBreedSelected = (id: any) => {
-    dispatch({
-      type: "GET_SELECTED_BREED",
-      payload: {
-        page: 1,
-        id,
-      },
-    });
+  const loadMenuItems = () => {
+    let lstItems: any[] = [];
+    if (dData.browser.list) {
+      dData.browser.list.map((e: any) => {
+        lstItems.push(
+          <MenuItem key={e.id} value={e.id}>
+            {e.name}
+          </MenuItem>
+        );
+      });
+    }
+    return lstItems;
   };
 
   useEffect(() => {
+    if (location.search) {
+      let breedSel: any = location.search.replace("?breed=", "");
+      setSelectedBreed(breedSel);
+      dispatch({
+        type: "SET_SELECTED_BREED",
+        payload: breedSel,
+      });
+      getBreedSelected(breedSel);
+    }
+
     dispatch({
-      type: "GET_BREEDS",
+      type: "SET_LOADING_BREEDS",
+      payload: true,
     });
-    getBreedSelected("sava");
+    getBreeds().then((res: any) => {
+      dispatch({
+        type: "GET_BREEDS",
+        payload: res.data,
+      });
+      dispatch({
+        type: "SET_LOADING_BREEDS",
+        payload: false,
+      });
+    });
   }, []);
 
   useEffect(() => {
-    if (props.mapStateToProps) {
-      setBreedList(props.mapStateToProps);
-    }
-  }, [props.mapStateToProps]);
+    setDData(mState);
+    setLoader(mState.browser.loadingList);
+  }, [mState]);
 
   return (
     <div className="App">
@@ -91,21 +148,24 @@ const App: React.FC<Props> = (props) => {
                 value={selectedBreed}
                 onChange={handleChange}
               >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                <MenuItem value={10}>Ten</MenuItem>
-                <MenuItem value={20}>Twenty</MenuItem>
-                <MenuItem value={30}>Thirty</MenuItem>
+                {loadMenuItems()}
               </Select>
             </FormControl>
           </Grid>
           <Grid item xs={12} className={classes.spacingStl}>
-            <CatList />
+            {selectedBreed ? (
+              <CatList />
+            ) : (
+              <Grid>
+                <Grid item xs={12}>
+                  <Grid xs={12}>No cats available</Grid>
+                </Grid>
+              </Grid>
+            )}
           </Grid>
           <Grid item xs={12} className={classes.spacingStl}>
             <Button
-              disabled={isLoading}
+              disabled={isLoading || dData.browser.cats.length <= 0}
               onClick={() => onLoadMore()}
               variant="contained"
               size="large"
@@ -123,7 +183,6 @@ const App: React.FC<Props> = (props) => {
                 "Load More"
               )}
             </Button>
-            <p>BREEDS: {JSON.stringify(breeds)}</p>
           </Grid>
         </Grid>
       </Grid>
@@ -131,8 +190,6 @@ const App: React.FC<Props> = (props) => {
   );
 };
 
-const mapStateToProps = (state: any) => ({
-  browse: state,
-});
-
-export default connect(mapStateToProps)(App);
+export default connect((state) => ({
+  mState: state,
+}))(App);

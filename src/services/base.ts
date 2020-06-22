@@ -3,7 +3,7 @@ import axios from "axios";
 const ROOTURL = "https://api.thecatapi.com/v1";
 
 export const getBreedDetails = (id: string): Promise<any> =>
-  axios.get(ROOTURL + `/images/${id}`);
+  axios.get(`${ROOTURL}/images/${id}`);
 
 export const getBreeds = (): Promise<any> => axios.get(ROOTURL + "/breeds");
 
