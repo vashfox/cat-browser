@@ -1,6 +1,7 @@
 import { createStore, combineReducers, applyMiddleware } from "redux";
 import { getBreedDetails, getBreeds, searchBreedImage } from "../services/base";
 import thunk from "redux-thunk";
+import { unionBy } from "lodash";
 
 const mathReducer = (
   state = {
@@ -8,6 +9,7 @@ const mathReducer = (
     loadingList: false,
     loadingCats: false,
     loadingInfo: false,
+    loadingMore: false,
     selectedBreed: null,
     info: null,
     cats: [],
@@ -27,8 +29,13 @@ const mathReducer = (
       return { ...state, loadingCats: action.payload };
     case "SET_LOADING_INFO":
       return { ...state, loadingInfo: action.payload };
+    case "SET_LOADING_MORE":
+      return { ...state, loadingMore: action.payload };
     case "SET_SELECTED_BREED":
       return { ...state, selectedBreed: action.payload };
+    case "SET_LOAD_MORE":
+      let currentListData: any[] = unionBy(state.list, action.payload, "id");
+      return { ...state, list: currentListData };
   }
   return state;
 };

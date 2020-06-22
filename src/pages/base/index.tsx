@@ -48,6 +48,7 @@ const App: React.FC<Props> = (props) => {
   const classes = useStyles();
   const [dData, setDData] = useState(mState);
   const [isLoading, setLoader] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedBreed, setSelectedBreed] = useState("");
 
   const getBreedSelected = (id: any) => {
@@ -56,7 +57,7 @@ const App: React.FC<Props> = (props) => {
       payload: true,
     });
     searchBreedImage({
-      page: 1,
+      page: currentPage,
       id,
     }).then((res: any) => {
       dispatch({
@@ -71,6 +72,7 @@ const App: React.FC<Props> = (props) => {
   };
 
   const handleChange = (e: any) => {
+    setCurrentPage(1);
     setSelectedBreed(e.target.value);
     dispatch({
       type: "SET_SELECTED_BREED",
@@ -82,8 +84,26 @@ const App: React.FC<Props> = (props) => {
     });
   };
 
-  const onLoadMore = () => {
-    setLoader(true);
+  const onLoadMore = (id: any) => {
+    dispatch({
+      type: "SET_LOADING_MORE",
+      payload: true,
+    });
+    let nPage = currentPage;
+    setCurrentPage(nPage + 1);
+    searchBreedImage({
+      page: currentPage,
+      id,
+    }).then((res: any) => {
+      dispatch({
+        type: "SET_LOAD_MORE",
+        payload: res.data,
+      });
+      dispatch({
+        type: "SET_LOADING_MORE",
+        payload: false,
+      });
+    });
   };
 
   const loadMenuItems = () => {
@@ -165,13 +185,17 @@ const App: React.FC<Props> = (props) => {
           </Grid>
           <Grid item xs={12} className={classes.spacingStl}>
             <Button
-              disabled={isLoading || dData.browser.cats.length <= 0}
-              onClick={() => onLoadMore()}
+              disabled={
+                isLoading ||
+                dData.browser.loadingMore ||
+                dData.browser.cats.length <= 0
+              }
+              onClick={() => onLoadMore(selectedBreed)}
               variant="contained"
               size="large"
               color="primary"
             >
-              {isLoading ? (
+              {isLoading || dData.browser.loadingMore ? (
                 <span>
                   <CircularProgress
                     size={20}
